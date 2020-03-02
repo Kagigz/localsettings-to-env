@@ -13,14 +13,26 @@
 me=$0
 now=$(date +'%m.%d.%Y')
 usage(){
-  echo "usage: $me [-e | --env]  [ -p | --path <File Path>] [ -v | --verbose] [ -f | --force] [-h | -help]"
-  echo "    Options:"
-  echo "        -e | --env      (optional) Set to 'no' (default) if you want to convert a local.settings.json file into a .env file, set to 'yes' if you want to do the opposite." 
-  echo "        -p | --path     (optional) Path of the folder containing the file to convert (default: current folder)" 
+  echo "usage: $me [-e | --env]  [ -o | --output <File Path>] [ -v | --verbose] [ -f | --force] [-h | -help]"
+  echo "    options:"
+  echo "        -e | --env      (optional) flag to convert from env to json. "
+  echo "                                   Leave out to convert from json to env. (default json to env)" 
+  echo "        -o | --output   (optional) Output file. (default is local.settings.json for -e and .env for otherwise.)" 
+  echo "        -i | --input    (optional) Input file. (default is .env for -e and local.settings.json for otherwise.)"  
   echo "        -f | --force    (optional) Skip prompting for existing file. (default: false)" 
   echo "        -v | --verbose  (optional) Show detailed output log (default: false)" 
   echo "        -h | --help     (optional) Show help text. This :) " 
   echo ""
+  echo ""
+  echo "    dependencies:"
+  printf "        -jq "
+  if [ -x "$(command -v jq)" ]; then
+    printf "\e[32m(installed - you're good to go!)\e[0m"
+  else
+    printf "\e[31m(not installed)\e[0m"
+  fi
+  
+  printf "\n            repo: https://github.com/stedolan/jq\f"  
 }
 
 ################################################
@@ -29,14 +41,18 @@ usage(){
 from_env=0
 verbose=0
 force=0
-path="."
+output_path=""
+input_path=""
 while [ "$1" != "" ]; do
     case $1 in
         -e | --env )            from_env=1
                                 ;;
-        -p | --path )           shift
-                                path=$1
+        -o | --output )         shift
+                                output_path=$1
                                 ;;
+        -i | --input )          shift
+                                input_path=$1
+                                ;;                                
         -f | --force )          force=1
                                 ;;
         -v | --verbose )        verbose=1
@@ -97,21 +113,63 @@ write_env_file () {
   success "$(readlink -f $path_create) created.\n"
 }
 
+write_json_file () {
+  path_read=$1
+  path_create=$2
+  header=""
+  row=""
+  count=0
+  while read p; do
+    key=$(echo $p| cut -d'=' -f 1)
+    value=$(echo $p| cut -d'=' -f 2)
+    value=$(sed -e 's/^"//' -e 's/"$//' <<<"$value")
+    info "\"$key\" : \"$value\""
+    header="${header}$key|"
+    row="${row}$value|"
+    print_dot
+    count=$((count+1))        
+  done <$path_read
+
+  s="${header::-1}
+  ${row::-1}"
+
+  json=$(jq -Rn '
+  ( input  | split("|") ) as $keys |
+  ( inputs | split("|") ) as $vals |
+  [[$keys, $vals] | transpose[] | {key:.[0],value:.[1]}] | from_entries
+  ' <<<"$s")
+
+  json_template=$(cat './templates/settings.json.template')
+  rendered_template="${json_template/<--VALUES-->/$json}" 
+  echo $rendered_template | jq '.' > $path_create
+
+  printf "\nProcessing complete! $count settings converted.\n"
+  success "$(readlink -f $path_create) created.\n"  
+}
+
 ################################################
 #        Core Script Logic
 ################################################
 convert_localsettings_to_env (){
-  info "Converting local.settings.json to .env..."
+  echo "******* Convert JSON to ENV *******"
   path_read='local.settings.json'
-  path_create='.env'
-  if [[ !  -z  $path  ]]; then
-    path_create=$path
-    info "Custom path provided. output will be in $path_create"
+  if [[ !  -z  $input_path  ]]; then
+    path_read=$input_path
+    info "Custom input path provided. input will be from $path_read"
   fi
+
+  path_create='.env'
+  if [[ !  -z  $output_path  ]]; then
+    path_create=$output_path
+    info "Custom ouput path provided. output will be in $path_create"
+  fi
+  
+  info "Converting $path_read to $path_create..."
 
   text=$(get_text $path_read)
   if [[ $(is_valid_json $text) -eq "0" ]]; then
     error "The contents of $path_read is not valid json!"
+    exit -1
   fi
   if test -f "$path_create" && [[ $force -eq 0 ]]; then
     read -r -p "WARNING! $path_create exists, overwrite? (y/n) " response
@@ -133,16 +191,45 @@ convert_localsettings_to_env (){
 }
 
 convert_env_to_localsettings(){
-  info "Converting .env to local.settings.json..."
+  echo "******* Convert ENV to JSON *******"
   path_read='.env'  
+  if [[ !  -z  $input_path  ]]; then
+    path_read=$input_path
+    info "Custom input path provided. input will be from $path_read"
+  fi
+
   path_create='local.settings.json'
+  if [[ !  -z  $output_path  ]]; then
+    path_create=$output_path
+    info "Custom path provided. output will be in $path_create"
+  fi
+  
+  info "Converting $path_read to $path_create..."  
+
+  if test -f "$path_create" && [[ $force -eq 0 ]]; then
+    read -r -p "WARNING! $path_create exists, overwrite? (y/n) " response
+    
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
+    then
+      #backup old file for the duration
+      mv $path_create "$path_create.bak$now"
+
+      write_json_file "$path_read" "$path_create"
+
+      #cleanup
+      rm "$path_create.bak$now"
+    else
+      error "Aborting! .env file was left as is. Please use -p to specify a different file."
+    fi
+  else
+    write_json_file "$path_read" "$path_create"
+  fi
 }
 
 ################################################
 #        Main
 ################################################
 convert_settings_env () {
-  echo "******* Convert JSON to ENV *******"
   if [[ $from_env -eq 1 ]]; then
     convert_env_to_localsettings
   else
