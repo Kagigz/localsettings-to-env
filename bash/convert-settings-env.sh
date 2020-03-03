@@ -139,7 +139,7 @@ write_json_file () {
   [[$keys, $vals] | transpose[] | {key:.[0],value:.[1]}] | from_entries
   ' <<<"$s")
 
-  json_template=$(cat './templates/settings.json.template')
+  json_template='{"IsEncrypted": false,"Values": <--VALUES-->}'
   rendered_template="${json_template/<--VALUES-->/$json}" 
   echo $rendered_template | jq '.' > $path_create
 
@@ -171,6 +171,9 @@ convert_localsettings_to_env (){
     error "The contents of $path_read is not valid json!"
     exit -1
   fi
+  if [[ $force -eq 1 ]]; then
+    mv $path_create "$path_create.f.bak$now"
+  fi
   if test -f "$path_create" && [[ $force -eq 0 ]]; then
     read -r -p "WARNING! $path_create exists, overwrite? (y/n) " response
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
@@ -187,6 +190,10 @@ convert_localsettings_to_env (){
     fi
   else
     write_env_file "$text" "$path_create"
+    #cleanup
+    if [[ $force -eq 1 ]]; then
+      rm "$path_create.f.bak$now"
+    fi         
   fi
 }
 
@@ -205,6 +212,9 @@ convert_env_to_localsettings(){
   fi
   
   info "Converting $path_read to $path_create..."  
+  if [[ $force -eq 1 ]]; then
+    mv $path_create "$path_create.f.bak$now"
+  fi
 
   if test -f "$path_create" && [[ $force -eq 0 ]]; then
     read -r -p "WARNING! $path_create exists, overwrite? (y/n) " response
@@ -223,6 +233,10 @@ convert_env_to_localsettings(){
     fi
   else
     write_json_file "$path_read" "$path_create"
+    #cleanup
+    if [[ $force -eq 1 ]]; then
+      rm "$path_create.f.bak$now"
+    fi         
   fi
 }
 
