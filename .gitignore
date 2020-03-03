@@ -1,0 +1,5 @@
+powershell/**/local.settings.json
+powershell/**/*.env
+bash/**/local.settings.json
+bash/**/*.env
+tests
