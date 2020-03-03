@@ -3,7 +3,7 @@
 This repo contains scripts (powershell & bash) to convert Azure functions local.settings.json files to .env files, or the other way around.
 
 
-## Powershell 👍
+## Powershell ☁
   A powershell script (.ps1) and module (.psm1)
   You can either run the powershell script or use it as a module.
   ### Parameters
