@@ -24,7 +24,7 @@ The repo contains:
   2. In the folder that contains the script, run `. .\convert-settings-env.ps1`. You can pass in parameters if you'd like
 
 * ## Bash
-  This [bash/convert-settings-env.sh] can be invoked directly and supports converting back and forth between .env and local.settings.json.
+  This [convert-settings-env.sh](bash/convert-settings-env.sh) can be invoked directly and supports converting back and forth between .env and local.settings.json.
 
   ### Parameters
   * -e | --env      (optional) flag to convert from env to json. Leave out to convert from json to env. (default json to env)
@@ -34,9 +34,8 @@ The repo contains:
   * -v | --verbose  (optional) Show detailed output log (default: false)
   * -h | --help     (optional) Show help text. This :) 
 
-
-dependencies:
--jq
+  ### Dependencies:
+  * jq - This bash script expects to find [jq](https://stedolan.github.io/jq/) as a cli tool.
 
 
 
