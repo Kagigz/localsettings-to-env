@@ -3,7 +3,7 @@
 This repo contains scripts (powershell & bash) to convert Azure functions local.settings.json files to .env files, or the other way around.
 
 
-## Powershell
+## Powershell 👍
   A powershell script (.ps1) and module (.psm1)
   You can either run the powershell script or use it as a module.
   ### Parameters
@@ -22,8 +22,8 @@ This repo contains scripts (powershell & bash) to convert Azure functions local.
   1. Set the Execution Policy on your machine to RemoteSigned if you've never done it before: `Set-ExecutionPolicy RemoteSigned`
   2. In the folder that contains the script, run `. .\convert-settings-env.ps1`. You can pass in parameters if you'd like
 
-## Bash
-  This [convert-settings-env.sh](bash/convert-settings-env.sh) can be invoked directly and supports converting back and forth between .env and local.settings.json.
+## Bash 🐱‍🏍
+  The [convert-settings-env.sh](bash/convert-settings-env.sh) can be invoked directly and supports converting back and forth between .env and local.settings.json.
 
   ### Parameters
   * `-e | --env `      (optional) flag to convert from env to json. Leave out to convert from json to env. (default json to env)
