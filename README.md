@@ -26,12 +26,12 @@ This repo contains scripts (powershell & bash) to convert Azure functions local.
   This [convert-settings-env.sh](bash/convert-settings-env.sh) can be invoked directly and supports converting back and forth between .env and local.settings.json.
 
   ### Parameters
-  * -e | --env      (optional) flag to convert from env to json. Leave out to convert from json to env. (default json to env)
-  * -o | --output   (optional) Output file. (default is local.settings.json for -e and .env for otherwise.)
-  * -i | --input    (optional) Input file. (default is .env for -e and local.settings.json for otherwise.)
-  * -f | --force    (optional) Skip prompting for existing file. (default: false)
-  * -v | --verbose  (optional) Show detailed output log (default: false)
-  * -h | --help     (optional) Show help text. This :) 
+  * `-e | --env `      (optional) flag to convert from env to json. Leave out to convert from json to env. (default json to env)
+  * `-o | --output`   (optional) Output file. (default is local.settings.json for -e and .env for otherwise.)
+  * `-i | --input`    (optional) Input file. (default is .env for -e and local.settings.json for otherwise.)
+  * `-f | --force`    (optional) Skip prompting for existing file. (default: false)
+  * `-v | --verbose`  (optional) Show detailed output log (default: false)
+  * `-h | --help`     (optional) Show help text. This :) 
 
   ### Dependencies:
   * jq - This bash script expects to find [jq](https://stedolan.github.io/jq/) as a cli tool.
