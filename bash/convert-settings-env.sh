@@ -10,7 +10,7 @@
 #                   The path of the folder containing the file to convert.    
 ##########################################################################################################################################
 
-me=$0
+me=`basename "$0"`
 now=$(date +'%m.%d.%Y')
 usage(){
   echo "usage: $me [-e | --env]  [ -o | --output <File Path>] [ -v | --verbose] [ -f | --force] [-h | -help]"
